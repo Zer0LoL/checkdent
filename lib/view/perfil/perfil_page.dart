@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
-import '../widgets/common_widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
@@ -11,86 +11,81 @@ class PerfilPage extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text('Mi Perfil'),
-        backgroundColor: AppColors.primary,
         centerTitle: true,
+        backgroundColor: AppColors.primary,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            const CircleAvatar(
+              radius: 60,
+              backgroundImage: AssetImage('assets/images/paciente.jpg'),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Carlos Ramírez',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Paciente regular',
+              style: TextStyle(color: Colors.grey),
+            ),
             const SizedBox(height: 20),
 
-            Center(
-              child: CircleAvatar(
-                radius: 55,
-                backgroundColor: AppColors.primary,
-                child: const CircleAvatar(
-                  radius: 50,
-                  backgroundImage: AssetImage('assets/images/avatar.png'),
-                ),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
-            ),
-            const SizedBox(height: 15),
-
-            const Center(
               child: Column(
                 children: [
-                  Text(
-                    'Dra. Valeria Pérez',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ListTile(
+                    leading: const Icon(Icons.email, color: AppColors.primary),
+                    title: const Text('Correo electrónico'),
+                    subtitle: const Text('carlos.ramirez@email.com'),
                   ),
-                  Text(
-                    'Odontóloga especialista en ortodoncia',
-                    style: TextStyle(color: Colors.black54),
-                    textAlign: TextAlign.center,
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.phone, color: AppColors.primary),
+                    title: const Text('Teléfono'),
+                    subtitle: const Text('+51 987 654 321'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.location_on, color: AppColors.primary),
+                    title: const Text('Dirección'),
+                    subtitle: const Text('Av. Los Olivos 123, Lima'),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
 
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.email, color: AppColors.primary),
-                title: const Text('Correo electrónico'),
-                subtitle: const Text('dra.perez@checkdent.com'),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.phone, color: AppColors.primary),
-                title: const Text('Teléfono'),
-                subtitle: const Text('+51 987 654 321'),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.location_on, color: AppColors.primary),
-                title: const Text('Ubicación'),
-                subtitle: const Text('Lima, Perú'),
-              ),
-            ),
+            const SizedBox(height: 20),
 
-            const SizedBox(height: 25),
-            const Divider(),
-
-            PrimaryButton(
-              text: 'Editar Perfil',
+            ElevatedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Función próximamente disponible.')),
-                );
               },
+              icon: const Icon(Icons.edit),
+              label: const Text('Editar Perfil'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
+
             const SizedBox(height: 10),
-            PrimaryButton(
-              text: 'Cerrar Sesión',
-              filled: false,
+
+            TextButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sesión cerrada correctamente.')),
-                );
               },
+              icon: const FaIcon(FontAwesomeIcons.arrowRightFromBracket, color: Colors.red),
+              label: const Text(
+                'Cerrar sesión',
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         ),

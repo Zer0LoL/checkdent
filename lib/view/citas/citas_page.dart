@@ -18,31 +18,53 @@ class CitasPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: const [
+            Text(
+              'Próximas Citas',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(height: 8),
+
             CitaCard(
               titulo: 'Ortodoncia - Juan Pérez',
               fecha: 'Martes 22 de Octubre',
               hora: '10:00 AM',
+              esProxima: true,
             ),
             CitaCard(
               titulo: 'Limpieza Dental - María López',
               fecha: 'Miércoles 23 de Octubre',
               hora: '4:30 PM',
+              esProxima: true,
             ),
+
+            SizedBox(height: 24),
+            Text(
+              'Citas Pasadas',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+
             CitaCard(
               titulo: 'Extracción - Pedro Gómez',
-              fecha: 'Viernes 25 de Octubre',
+              fecha: 'Viernes 11 de Octubre',
               hora: '11:15 AM',
+              esProxima: false,
             ),
             CitaCard(
               titulo: 'Blanqueamiento - Sofía Rojas',
-              fecha: 'Sábado 26 de Octubre',
+              fecha: 'Lunes 7 de Octubre',
               hora: '9:00 AM',
+              esProxima: false,
             ),
           ],
         ),
       ),
-
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.pushNamed(context, '/nueva_cita');

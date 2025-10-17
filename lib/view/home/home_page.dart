@@ -9,88 +9,179 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: const Text('CheckDent'),
-        centerTitle: true,
-      ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Bienvenida, Dra. Pérez 👋',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Citas Dentales",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: const [
+                    Icon(Icons.notifications_none, color: Colors.black54),
+                    SizedBox(width: 12),
+                    Icon(Icons.settings_outlined, color: Colors.black54),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            const Text(
-              'Aquí tienes un resumen de tus próximas citas y recordatorios.',
-              style: TextStyle(color: Colors.black54),
+            const SizedBox(height: 20),
+
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, size: 35, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Bienvenido, Juan",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const Text("Lista de Citas",
+                              style: TextStyle(color: Colors.black54)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text("Ver historial"),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 20),
 
             Row(
               children: [
-                QuickOption(
-                  icon: Icons.event,
-                  label: 'Ver Citas',
-                  onTap: () {
-                    Navigator.pushNamed(context, '/citas');
-                  },
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+                    label: const Text("Sacar cita", style: TextStyle(color: Colors.white)),
+                  ),
                 ),
                 const SizedBox(width: 8),
-                QuickOption(
-                  icon: Icons.notifications,
-                  label: 'Recordatorios',
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: const Icon(Icons.settings, color: AppColors.primary),
+                    label: const Text("Configuración",
+                        style: TextStyle(color: AppColors.primary)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            const Text("Próximas Citas",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+
+            AppointmentCard(
+              icon: Icons.cleaning_services,
+              title: "Limpieza Dental",
+              date: "12/12/2023",
+              time: "10:00 AM",
+              status: "Confirmada",
+              statusColor: Colors.green,
+            ),
+            AppointmentCard(
+              icon: Icons.medical_services_outlined,
+              title: "Revisión General",
+              date: "15/12/2023",
+              time: "09:30 AM",
+              status: "Pendiente",
+              statusColor: Colors.orange,
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text("Opciones Rápidas",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                QuickOptionCard(
+                  icon: Icons.people,
+                  label: "Ver Dentistas",
                   onTap: () {},
                 ),
-                const SizedBox(width: 8),
-                QuickOption(
-                  icon: Icons.message,
-                  label: 'Contacto',
-                  onTap: () {
-                    Navigator.pushNamed(context, '/contacto');
-                  },
+                const SizedBox(width: 12),
+                QuickOptionCard(
+                  icon: Icons.location_on,
+                  label: "Ubicación",
+                  onTap: () {},
                 ),
               ],
             ),
 
-            const SizedBox(height: 25),
-            const Text(
-              'Próximas citas',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
 
-            const CitaCard(
-              titulo: 'Control de ortodoncia - Juan Pérez',
-              fecha: 'Martes 22 de Octubre, 10:00 AM',
-              hora: '10:00 AM',
-            ),
-            const CitaCard(
-              titulo: 'Limpieza dental - María López',
-              fecha: 'Miércoles 23 de Octubre, 4:30 PM',
-              hora: '4:30 PM',
-            ),
+            const Text("Consejos de Salud Dental",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
 
-            const SizedBox(height: 25),
-            const Text(
-              'Consejos de cuidado dental 🦷',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-
-            const ConsejoCard(
-              titulo: 'Evita alimentos duros si usas brackets.',
-              autor: 'Recomendado por CheckDent',
-            ),
-            const ConsejoCard(
-              titulo: 'Usa hilo dental todos los días.',
-              autor: 'Consejo de la Dra. Pérez',
-            ),
-            const ConsejoCard(
-              titulo: 'Programa una limpieza cada 6 meses.',
-              autor: 'CheckDent Tips',
+            Row(
+              children: const [
+                Expanded(
+                  child: AdviceCard(
+                    title: "Cuida tu cepillado",
+                    description: "Cepilla tus dientes al menos dos veces al día.",
+                    doctor: "Dr. Pérez",
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: AdviceCard(
+                    title: "Visita al dentista",
+                    description: "Hazte una revisión cada 6 meses.",
+                    doctor: "Clínica Sonrisa",
+                  ),
+                ),
+              ],
             ),
           ],
         ),
