@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../core/app_colors.dart';
+import '../../core/session_manager.dart';
+import '../login/login_page.dart'; // Asegúrate de importar tu Login
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
 
+  void _cerrarSesion(BuildContext context) {
+    // 1. Limpiamos la memoria
+    SessionManager().logout();
+
+    // 2. Navegamos al Login eliminando todo el historial de navegación
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+          (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // LEEMOS LOS DATOS REALES
+    final usuario = SessionManager().usuario;
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -21,17 +37,18 @@ class PerfilPage extends StatelessWidget {
           children: [
             const CircleAvatar(
               radius: 60,
-              backgroundImage: AssetImage('assets/images/paciente.jpg'),
+              backgroundColor: AppColors.primary,
+              child: Icon(Icons.person, size: 60, color: Colors.white),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Carlos Ramírez',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Text(
+              usuario?.nombre ?? 'Usuario',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Paciente regular',
-              style: TextStyle(color: Colors.grey),
+            Text(
+              usuario?.rol.toUpperCase() ?? 'PACIENTE',
+              style: const TextStyle(color: Colors.grey, letterSpacing: 1.2),
             ),
             const SizedBox(height: 20),
 
@@ -44,19 +61,19 @@ class PerfilPage extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.email, color: AppColors.primary),
                     title: const Text('Correo electrónico'),
-                    subtitle: const Text('carlos.ramirez@email.com'),
+                    subtitle: Text(usuario?.email ?? ''),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.phone, color: AppColors.primary),
                     title: const Text('Teléfono'),
-                    subtitle: const Text('+51 987 654 321'),
+                    subtitle: Text(usuario?.telefono ?? 'No registrado'),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.location_on, color: AppColors.primary),
                     title: const Text('Dirección'),
-                    subtitle: const Text('Av. Los Olivos 123, Lima'),
+                    subtitle: Text(usuario?.direccion ?? 'No registrada'),
                   ),
                 ],
               ),
@@ -64,8 +81,12 @@ class PerfilPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
+            // Botón Editar (Visual por ahora)
             ElevatedButton.icon(
               onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Edición de perfil próximamente"))
+                );
               },
               icon: const Icon(Icons.edit),
               label: const Text('Editar Perfil'),
@@ -78,9 +99,9 @@ class PerfilPage extends StatelessWidget {
 
             const SizedBox(height: 10),
 
+            // BOTÓN CERRAR SESIÓN REAL
             TextButton.icon(
-              onPressed: () {
-              },
+              onPressed: () => _cerrarSesion(context),
               icon: const FaIcon(FontAwesomeIcons.arrowRightFromBracket, color: Colors.red),
               label: const Text(
                 'Cerrar sesión',
