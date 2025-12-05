@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart'; // <--- 1. IMPORTA ESTO
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/app_routes.dart';
 import 'core/app_theme.dart';
-import 'view/login/login_page.dart'; // Tu pantalla de inicio
+import 'view/login/login_page.dart';
 
-// 2. CONVIERTE EL MAIN EN ASYNC
 void main() async {
-  // Asegura que los motores de Flutter estén listos
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 3. CARGA EL IDIOMA ESPAÑOL (Mata el error LocaleDataException)
   await initializeDateFormatting('es');
 
   runApp(const CheckDentApp());

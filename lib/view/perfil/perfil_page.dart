@@ -1,26 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'editar_perfil_page.dart';
 import '../../core/app_colors.dart';
 import '../../core/session_manager.dart';
-import '../login/login_page.dart'; // Asegúrate de importar tu Login
+import '../../services/usuario_service.dart';
+import '../../models/usuario_model.dart';
+import '../login/login_page.dart';
+import 'package:checkdent/core/api_config.dart';
 
-class PerfilPage extends StatelessWidget {
+class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
 
-  void _cerrarSesion(BuildContext context) {
-    // 1. Limpiamos la memoria
-    SessionManager().logout();
+  @override
+  State<PerfilPage> createState() => _PerfilPageState();
+}
 
-    // 2. Navegamos al Login eliminando todo el historial de navegación
+class _PerfilPageState extends State<PerfilPage> {
+  final UsuarioService _usuarioService = UsuarioService();
+
+  final String _baseUrl = 'http://10.0.2.2:3000';
+
+  void _cerrarSesion() {
+    SessionManager().logout();
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginPage()),
           (Route<dynamic> route) => false,
     );
   }
 
+  Future<void> _procesarImagen(ImageSource source) async {
+    Navigator.pop(context);
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      File imagen = File(pickedFile.path);
+      try {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Subiendo imagen...")));
+        String nuevaUrl = await _usuarioService.subirAvatar(imagen);
+
+        final usuarioActual = SessionManager().usuario!;
+        final usuarioActualizado = Usuario(
+            id: usuarioActual.id,
+            nombre: usuarioActual.nombre,
+            email: usuarioActual.email,
+            rol: usuarioActual.rol,
+            telefono: usuarioActual.telefono,
+            direccion: usuarioActual.direccion,
+            especialidad: usuarioActual.especialidad,
+            foto: nuevaUrl
+        );
+
+        SessionManager().setUsuario(usuarioActualizado);
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("¡Foto actualizada!"), backgroundColor: Colors.green));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  void _cambiarFoto() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galería'),
+                onTap: () => _procesarImagen(ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Cámara'),
+                onTap: () => _procesarImagen(ImageSource.camera),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // LEEMOS LOS DATOS REALES
     final usuario = SessionManager().usuario;
 
     return Scaffold(
@@ -35,11 +102,41 @@ class PerfilPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const CircleAvatar(
-              radius: 60,
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.person, size: 60, color: Colors.white),
+
+            GestureDetector(
+              onTap: _cambiarFoto,
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundColor: AppColors.primary,
+                    backgroundImage: usuario?.foto != null
+                        ? NetworkImage(
+                        usuario!.foto!.startsWith('http')
+                            ? usuario!.foto!
+                            : '${ApiConfig.imgBaseUrl}${usuario!.foto!}'
+                    )
+                        : null,
+                    child: usuario?.foto == null
+                        ? const Icon(Icons.person, size: 60, color: Colors.white)
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.camera_alt, color: AppColors.primary, size: 20),
+                    ),
+                  )
+                ],
+              ),
             ),
+
             const SizedBox(height: 12),
             Text(
               usuario?.nombre ?? 'Usuario',
@@ -81,12 +178,16 @@ class PerfilPage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Botón Editar (Visual por ahora)
             ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Edición de perfil próximamente"))
+              onPressed: () async {
+                final resultado = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditarPerfilPage()),
                 );
+
+                if (resultado == true) {
+                  setState(() {});
+                }
               },
               icon: const Icon(Icons.edit),
               label: const Text('Editar Perfil'),
@@ -99,9 +200,8 @@ class PerfilPage extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // BOTÓN CERRAR SESIÓN REAL
             TextButton.icon(
-              onPressed: () => _cerrarSesion(context),
+              onPressed: _cerrarSesion,
               icon: const FaIcon(FontAwesomeIcons.arrowRightFromBracket, color: Colors.red),
               label: const Text(
                 'Cerrar sesión',

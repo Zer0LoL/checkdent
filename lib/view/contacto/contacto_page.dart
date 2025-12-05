@@ -1,150 +1,171 @@
 import 'package:flutter/material.dart';
-import '../../core/app_colors.dart';
-import '../widgets/common_widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../core/app_colors.dart';
 
 class ContactoPage extends StatelessWidget {
   const ContactoPage({super.key});
 
+  Future<void> _abrirWhatsApp() async {
+    final uri = Uri.parse("https://wa.me/51987654321?text=Hola,%20quisiera%20más%20información");
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) throw 'Error';
+  }
+
+  Future<void> _hacerLlamada() async {
+    final uri = Uri.parse("tel:+51987654321");
+    if (!await launchUrl(uri)) throw 'Error';
+  }
+
+  Future<void> _abrirMapa() async {
+    final uri = Uri.parse("https://www.google.com/maps/search/?api=1&query=-12.043889,-76.997806");
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) throw 'Error';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Contacto'),
-        backgroundColor: AppColors.primary,
-        centerTitle: true,
-      ),
-      backgroundColor: Colors.grey[100],
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.grey[50],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200.0,
+            floating: false,
+            pinned: true,
+            backgroundColor: AppColors.primary,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text("Contáctanos", style: TextStyle(fontWeight: FontWeight.bold)),
+              centerTitle: true,
+              background: Stack(
+                fit: StackFit.expand,
                 children: [
-                  const Text(
-                    'Clínica Dental CheckDent',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Image.asset(
+                    'assets/images/mapa_clinica.png',
+                    fit: BoxFit.cover,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Av. Los Incas 1234, Lima, Perú',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-
-                  // Contacto principal
-                  Row(
-                    children: const [
-                      Icon(Icons.phone, color: Colors.green),
-                      SizedBox(width: 10),
-                      Text('+51 987 654 321', style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: const [
-                      Icon(Icons.email, color: Colors.blueAccent),
-                      SizedBox(width: 10),
-                      Text('checkdent@clinicadental.pe',
-                          style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Icon(Icons.access_time, color: Colors.orange),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Lunes a Sábado: 9:00 AM - 8:00 PM\nDomingos: 9:00 AM - 2:00 PM',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                  Container(color: Colors.black.withOpacity(0.4)),
+                ],
+              ),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildListDelegate([
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("Clínica Dental CheckDent", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _abrirMapa,
+                      child: Row(
+                        children: const [
+                          Icon(Icons.location_on, color: Colors.redAccent),
+                          SizedBox(width: 8),
+                          Expanded(child: Text("Av. Los Incas 1234, Lima, Perú", style: TextStyle(fontSize: 16, decoration: TextDecoration.underline))),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                    ),
 
-            const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                    const Text("Horarios de Atención", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
 
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/images/mapa_clinica.png',
-                  fit: BoxFit.cover,
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0,4))],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildHorarioRow("Lunes - Viernes", "09:00 AM - 08:00 PM", true),
+                          const Divider(),
+                          _buildHorarioRow("Sábados", "09:00 AM - 06:00 PM", true),
+                          const Divider(),
+                          _buildHorarioRow("Domingos", "09:00 AM - 01:00 PM", false),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+                    const Text("Canales de Contacto", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildContactButton(
+                            label: "WhatsApp",
+                            icon: FontAwesomeIcons.whatsapp,
+                            color: Colors.green,
+                            onTap: _abrirWhatsApp,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildContactButton(
+                            label: "Llamar",
+                            icon: Icons.phone,
+                            color: AppColors.primary,
+                            onTap: _hacerLlamada,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildContactButton(
+                        label: "Ver en Google Maps",
+                        icon: Icons.map,
+                        color: Colors.blueAccent,
+                        onTap: _abrirMapa,
+                        isFullWidth: true
+                    ),
+
+                    const SizedBox(height: 30),
+                    Center(child: Text("¡Tu sonrisa es nuestra prioridad!", style: TextStyle(color: Colors.grey[400], fontStyle: FontStyle.italic))),
+                  ],
                 ),
               ),
-            ),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
 
-            const SizedBox(height: 24),
+  Widget _buildHorarioRow(String dia, String hora, bool abierto) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(dia, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+          Row(
+            children: [
+              Icon(Icons.circle, size: 10, color: abierto ? Colors.green : Colors.orange),
+              const SizedBox(width: 6),
+              Text(hora, style: const TextStyle(color: Colors.black87)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Integrar WhatsApp (lanzar URL)
-                  },
-                  icon: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.white),
-                  label: const Text('WhatsApp'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Integrar llamada directa
-                  },
-                  icon: const Icon(Icons.phone, color: Colors.white),
-                  label: const Text('Llamar'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ],
-            ),
-          ],
+  Widget _buildContactButton({required String label, required IconData icon, required Color color, required VoidCallback onTap, bool isFullWidth = false}) {
+    return SizedBox(
+      width: isFullWidth ? double.infinity : null,
+      child: ElevatedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, color: Colors.white),
+        label: Text(label, style: const TextStyle(color: Colors.white, fontSize: 16)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          elevation: 3,
         ),
       ),
     );

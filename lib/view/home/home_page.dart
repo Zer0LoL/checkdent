@@ -3,8 +3,11 @@ import '../../core/app_colors.dart';
 import '../widgets/common_widgets.dart';
 import '../../core/session_manager.dart';
 import '../../services/citas_service.dart';
+import '../../services/consejos_service.dart';
 import '../../models/cita_model.dart';
+import '../../models/consejo_model.dart';
 import '../main_screen.dart';
+import '../../core/api_config.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,44 +18,57 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final CitasService _citasService = CitasService();
+  final ConsejosService _consejosService = ConsejosService();
+
   List<Cita> _citasProximas = [];
-  bool _isLoading = true;
+  List<Consejo> _consejos = [];
+
+  bool _isLoadingCitas = true;
+  bool _isLoadingConsejos = true;
+
 
   @override
   void initState() {
     super.initState();
-    _cargarResumen();
+    _cargarTodo();
   }
 
-  // Cargamos las citas para mostrar solo las próximas en el Home
-  Future<void> _cargarResumen() async {
+  Future<void> _cargarTodo() async {
+    _cargarCitas();
+    _cargarConsejos();
+  }
+
+  Future<void> _cargarCitas() async {
     try {
       final citas = await _citasService.obtenerMisCitas();
       final hoy = DateTime.now();
-
-      // Filtramos solo las futuras y activas
       final proximas = citas.where((c) =>
       c.fecha.isAfter(hoy.subtract(const Duration(days: 1))) &&
           c.estado != 'cancelada'
       ).toList();
-
-      // Ordenamos por fecha
       proximas.sort((a, b) => a.fecha.compareTo(b.fecha));
 
-      if (mounted) {
-        setState(() {
-          // Solo tomamos las 2 primeras para no saturar el Home
-          _citasProximas = proximas.take(2).toList();
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() {
+        _citasProximas = proximas.take(2).toList();
+        _isLoadingCitas = false;
+      });
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
-      print("Error cargando resumen home: $e");
+      if (mounted) setState(() => _isLoadingCitas = false);
     }
   }
 
-  // Función para formatear fecha simple
+  Future<void> _cargarConsejos() async {
+    try {
+      final data = await _consejosService.obtenerConsejos();
+      if (mounted) setState(() {
+        _consejos = data;
+        _isLoadingConsejos = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingConsejos = false);
+    }
+  }
+
   String _formatoFecha(DateTime fecha) {
     return "${fecha.day}/${fecha.month}/${fecha.year}";
   }
@@ -63,8 +79,8 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: RefreshIndicator( // Permite deslizar hacia abajo para recargar
-        onRefresh: _cargarResumen,
+      body: RefreshIndicator(
+        onRefresh: _cargarTodo,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           physics: const AlwaysScrollableScrollPhysics(),
@@ -75,22 +91,13 @@ class _HomePageState extends State<HomePage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "Citas Dentales",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    children: const [
-                      Icon(Icons.notifications_none, color: Colors.black54),
-                      SizedBox(width: 12),
-                      Icon(Icons.settings_outlined, color: Colors.black54),
-                    ],
-                  ),
+                  const Text("Citas Dentales", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const Icon(Icons.notifications_none, color: Colors.black54),
                 ],
               ),
               const SizedBox(height: 20),
 
-              // TARJETA DE BIENVENIDA
+              // TARJETA BIENVENIDA
               Card(
                 elevation: 3,
                 child: Padding(
@@ -100,24 +107,24 @@ class _HomePageState extends State<HomePage> {
                       CircleAvatar(
                         radius: 28,
                         backgroundColor: AppColors.primary,
-                        // Si tiene foto la usamos, si no icono
-                        child: usuario?.foto != null
-                            ? null
-                            : const Icon(Icons.person, size: 35, color: Colors.white),
+                        backgroundImage: usuario?.foto != null
+                            ? NetworkImage(
+                            usuario!.foto!.startsWith('http')
+                                ? usuario!.foto!
+                                : '${ApiConfig.imgBaseUrl}${usuario!.foto!}'
+                        )
+                            : null,
+                        child: usuario?.foto == null
+                            ? const Icon(Icons.person, size: 35, color: Colors.white)
+                            : null,
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                                "Bienvenido, ${usuario?.nombre ?? 'Paciente'}",
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
-                            ),
-                            Text(
-                                usuario?.email ?? "",
-                                style: const TextStyle(color: Colors.black54)
-                            ),
+                            Text("Bienvenido, ${usuario?.nombre ?? 'Paciente'}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text(usuario?.email ?? "", style: const TextStyle(color: Colors.black54)),
                           ],
                         ),
                       ),
@@ -127,17 +134,15 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 20),
 
-              // BOTONES DE ACCIÓN RÁPIDA
+              // BOTONES ACCIÓN
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
+                      // LOGICA NAVEGACIÓN CORREGIDA
                       onPressed: () {
-
-                        final mainScreenState = context.findAncestorStateOfType<State<MainScreen>>();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Ve a la pestaña 'Citas' para agendar"))
-                        );
+                        // Usamos la llave maestra para cambiar a la pestaña 1 (Citas)
+                        mainScreenKey.currentState?.changeTab(1);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
@@ -151,43 +156,37 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        // Aquí podrías llevar a perfil
+                        mainScreenKey.currentState?.changeTab(3);
+                      },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.primary),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      icon: const Icon(Icons.settings, color: AppColors.primary),
-                      label: const Text("Configuración", style: TextStyle(color: AppColors.primary)),
+                      icon: const Icon(Icons.person, color: AppColors.primary),
+                      label: const Text("Mi Perfil", style: TextStyle(color: AppColors.primary)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
 
-              // SECCIÓN DINÁMICA DE PRÓXIMAS CITAS
+              const SizedBox(height: 24),
               const Text("Próximas Citas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
 
-              if (_isLoading)
+              if (_isLoadingCitas)
                 const Center(child: CircularProgressIndicator())
               else if (_citasProximas.isEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200)
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.event_available, size: 40, color: Colors.grey),
-                      const SizedBox(height: 8),
-                      const Text("Todo al día", style: TextStyle(fontWeight: FontWeight.bold)),
-                      const Text("No tienes citas próximas.", style: TextStyle(color: Colors.grey)),
-                    ],
-                  ),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                  child: Column(children: const [
+                    Icon(Icons.event_available, size: 40, color: Colors.grey),
+                    Text("No tienes citas próximas", style: TextStyle(color: Colors.grey))
+                  ]),
                 )
               else
                 ..._citasProximas.map((cita) => AppointmentCard(
@@ -196,24 +195,46 @@ class _HomePageState extends State<HomePage> {
                   date: _formatoFecha(cita.fecha),
                   time: cita.horaInicio,
                   status: cita.estado.toUpperCase(),
-                  statusColor: cita.estado == 'confirmada' ? Colors.green : Colors.orange,
+                  statusColor: Colors.green,
                 )),
 
               const SizedBox(height: 24),
-
-              const Text("Opciones Rápidas", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  QuickOptionCard(icon: Icons.people, label: "Ver Dentistas", onTap: () {}),
-                  const SizedBox(width: 12),
-                  QuickOptionCard(icon: Icons.location_on, label: "Ubicación", onTap: () {}),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
               const Text("Consejos de Salud", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+
+              // CARRUSEL CONSEJOS CORREGIDO
+              SizedBox(
+                height: 140,
+                child: _isLoadingConsejos
+                    ? const Center(child: CircularProgressIndicator())
+                    : _consejos.isEmpty
+                    ? const Center(child: Text("No hay consejos disponibles"))
+                    : PageView.builder(
+                  controller: PageController(viewportFraction: 0.9),
+                  itemCount: _consejos.length,
+                  itemBuilder: (context, index) {
+                    final item = _consejos[index];
+                    return Container(
+                      margin: const EdgeInsets.only(right: 10),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("💡 ${item.titulo}", style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                          const SizedBox(height: 5),
+                          Text(item.descripcion, maxLines: 3, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
