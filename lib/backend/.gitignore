@@ -1,0 +1,8 @@
+# Dependencias (Se instalan solas)
+node_modules/
+
+# Variables de Entorno (SECRETOS - NO SUBIR NUNCA)
+.env
+
+# Logs de errores
+npm-debug.log
